@@ -3,3 +3,4 @@ data/
 data_medmentions/
 data_umls/
 spacy_model/
+output/
