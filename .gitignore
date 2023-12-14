@@ -5,3 +5,7 @@ data_umls/
 spacy_model/
 output/
 static-kg/
+lib/
+*.html
+*.png
+*.gv
