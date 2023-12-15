@@ -6,6 +6,4 @@ spacy_model/
 output/
 static-kg/
 lib/
-*.html
-*.png
-*.gv
+explainability_results/
