@@ -1,3 +1,4 @@
+.cache/
 proj_venv/
 data/
 data_medmentions/
