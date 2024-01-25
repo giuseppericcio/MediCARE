@@ -4,6 +4,7 @@ from datetime import datetime
 
 import torch
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import numpy as np
 
@@ -50,6 +51,7 @@ def med_recommended(y_prob: torch.Tensor, mimic_df: pd.DataFrame, top_k: int = 1
     # get the list of all medications in the dataset
     list_medications = mimic3sample.get_all_tokens('medications')
 
+    sorted_indices = np.array(sorted_indices)
     # iterate over the top indexes for each sample in test_ds
     for (i, sample), top in zip(mimic_df.iterrows(), sorted_indices):
         # st.write(sorted_indices)
@@ -65,10 +67,10 @@ def med_recommended(y_prob: torch.Tensor, mimic_df: pd.DataFrame, top_k: int = 1
         # append the recommended medications for this sample to the recommended medications list
         rec_medication.append(sample_rec_medication)
 
-    return rec_medication
+    return rec_medication, sorted_indices
 
-@st.cache_resource(hash_funcs={GNN: lambda _: None, SampleEHRDataset: lambda _: None})
-def explainability(model: GNN, explain_dataset: SampleEHRDataset, algorithm: str, task: str):
+# @st.cache_resource(hash_funcs={GNN: lambda _: None, SampleEHRDataset: lambda _: None})
+def explainability(model: GNN, explain_dataset: SampleEHRDataset, selected_idx: int, algorithm: str, task: str):
     explainer = HeteroGraphExplainer(
         algorithm=algorithm,
         dataset=explain_dataset,
@@ -77,9 +79,28 @@ def explainability(model: GNN, explain_dataset: SampleEHRDataset, algorithm: str
         threshold_value=20,
         top_k=20,
         feat_size=128,
+        root="./streamlit_results/",
     )
 
-    st.write(explainer.explain(n=2))
+    visit_drug = explainer.subgraph['visit', 'medication'].edge_index
+    # st.write(visit_drug)
+    visit_drug = visit_drug.T
+
+    n = 0
+    for vis_drug in visit_drug:
+        vis_drug = np.array(vis_drug)
+        if vis_drug[1] == selected_idx:
+            break
+        n += 1
+
+    # st.write(n)
+
+    explainer.explain(n=n)
+    explainer.explain_graph(k=0, human_readable=False, dashboard=True)
+    HtmlFile = open("streamlit_results/explain_graph.html", 'r', encoding='utf-8')
+    source_code = HtmlFile.read() 
+    components.html(source_code, height = 400, width=700)
+
 
 # ---- SETTINGS PAGE ----
 st.set_page_config(page_title="Dashboard - Prova Prova Sa Sa", page_icon="🩺", layout="wide")
@@ -154,39 +175,50 @@ algorithm = st.sidebar.selectbox(label='Select __interpretability algorithm__: '
 # st.dataframe(mimic_df)
 
 # ---- Patient info ----
-st.subheader(":blue[DASHBOARD OF] ")
+# st.subheader(":blue[DASHBOARD OF] ")
 st.title("{} {} :{}:".format(name, lastname, gender_sign))
-st.caption("Patient n°: {}    Gender: {}    Ethnicity: {}".format(patient, patient_info.gender, patient_info.ethnicity))
+st.caption("Patient n°: {}  -  Gender: {}  -  Ethnicity: {}".format(patient, patient_info.gender, patient_info.ethnicity))
 
-l1, r1 = st.columns(2)
+l1, r1 = st.columns([1.2, 2])
 with l1:
-    dob = str(patient_info.birth_datetime)
-    dob = datetime.strptime(dob, "%Y-%m-%d %H:%M:%S").strftime("%d-%m-%Y")
-    st.metric(label="📆 Date of birth", value=dob, delta="")
+    # dob = str(patient_info.birth_datetime)
+    # dob = datetime.strptime(dob, "%Y-%m-%d %H:%M:%S").strftime("%d-%m-%Y")
+    # st.metric(label="📆 Date of birth", value=dob, delta="")
+    # ---- Output model ----
+    output = model(mimic_df_patient_visit['patient_id'],
+                mimic_df_patient_visit['visit_id'],
+                mimic_df_patient_visit['diagnosis'],
+                mimic_df_patient_visit['procedures'],
+                mimic_df_patient_visit['symptoms'],
+                mimic_df_patient_visit['medications'])
+
+    st.subheader("Recommended _medications_: ")
+    med_recommended, med_indices = med_recommended(output['y_prob'], mimic_df_patient_visit)
+    med_recommended = [[idx, item] for idx, item in zip(*med_indices, *med_recommended) if item]
+    st.dataframe(med_recommended, column_config={"0": "ID", "1": "Recommended Medications"})
 
 with r1:
-    dod = str(patient_info.death_datetime)
-    if dod != "None":
-        dod = datetime.strptime(dod, "%Y-%m-%d %H:%M:%S").strftime("%d-%m-%Y")
-        st.metric(label="☠️ Date of death", value=dod, delta="")
+    st.subheader("Explainability Graph? ")
+    # dod = str(patient_info.death_datetime)
+    # if dod != "None":
+    #     dod = datetime.strptime(dod, "%Y-%m-%d %H:%M:%S").strftime("%d-%m-%Y")
+    #     st.metric(label="☠️ Date of death", value=dod, delta="")
+    options = [item[1] for item in med_recommended if item]
+    selected_medication = st.selectbox('Select the medication for explain', index=None, 
+                                placeholder="Choice a medication to explain", options=options)
 
-# ---- Output model ----
-output = model(mimic_df_patient_visit['patient_id'],
-               mimic_df_patient_visit['visit_id'],
-               mimic_df_patient_visit['diagnosis'],
-               mimic_df_patient_visit['procedures'],
-               mimic_df_patient_visit['symptoms'],
-               mimic_df_patient_visit['medications'])
+    if selected_medication is None:
+        st.stop()
 
-med_recommended = med_recommended(output['y_prob'], mimic_df_patient_visit)
-st.dataframe(zip(*med_recommended), column_config={"0": "Recommended Medications"})
+    st.write(f'You selected: __{selected_medication}__')
+    selected_idx = [item[0] for item in med_recommended if item[1] == selected_medication]
 
-explain_sample = {}
-for visit_sample in mimic3sample.samples:
-    if visit_sample['patient_id'] == patient and visit_sample['visit_id'] == visit:
-        if visit_sample.get('drugs_hist') != None:
-            del visit_sample['drugs_hist']
-        explain_sample['test'] = visit_sample
+    explain_sample = {}
+    for visit_sample in mimic3sample.samples:
+        if visit_sample['patient_id'] == patient and visit_sample['visit_id'] == visit:
+            if visit_sample.get('drugs_hist') != None:
+                del visit_sample['drugs_hist']
+            explain_sample['test'] = visit_sample
 
-explain_dataset = SampleEHRDataset(list(explain_sample.values()), code_vocs="ATC")
-explainability(model, explain_dataset, algorithm, task)
+    explain_dataset = SampleEHRDataset(list(explain_sample.values()), code_vocs="ATC")
+    explainability(model, explain_dataset, selected_idx[0], algorithm, task)
