@@ -1,12 +1,19 @@
 from typing import Tuple, List
 from faker import Faker
-from datetime import datetime
+# from datetime import datetime
 
+import os
+import json
 import torch
+import shutil
+import asyncio
+import autogen
 import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
 import numpy as np
+
+from autogen import OpenAIWrapper, AssistantAgent, UserProxyAgent
 
 from pyhealth.medcode import InnerMap
 from pyhealth.datasets import MIMIC3Dataset, SampleEHRDataset
@@ -15,6 +22,13 @@ from pyhealth.models import GNN
 from pyhealth.explainer import HeteroGraphExplainer
 
 PATH = "output/20240124-084903/best.ckpt"
+shutil.rmtree(".cache/", ignore_errors=True)
+
+class TrackableUserProxyAgent(UserProxyAgent):
+    def _process_received_message(self, message, sender, silent):
+        with st.chat_message(sender.name, avatar="https://generated-images.perchance.org/image/777b73a7a72204c5417c33c77100317b96792fbfa4a55e7112a88053ba272cd9.jpeg"):
+            st.write(f"**{message['name']}**: {message['content']}")
+        return super()._process_received_message(message, sender, silent)
 
 @st.cache_resource(hash_funcs={torch.nn.parameter.Parameter: lambda _: None})
 def load_gnn() -> Tuple[torch.nn.Module, MIMIC3Dataset, SampleEHRDataset]:
@@ -97,13 +111,16 @@ def explainability(model: GNN, explain_dataset: SampleEHRDataset, selected_idx: 
 
     explainer.explain(n=n)
     explainer.explain_graph(k=0, human_readable=False, dashboard=True)
+    explainer.explain_results(n=n)
+    explainer.explain_results(n=n, doctor_type="Internist_Doctor")
+
     HtmlFile = open("streamlit_results/explain_graph.html", 'r', encoding='utf-8')
     source_code = HtmlFile.read() 
-    components.html(source_code, height = 400, width=700)
+    components.html(source_code, height=400, width=650)
 
 
 # ---- SETTINGS PAGE ----
-st.set_page_config(page_title="Dashboard - Prova Prova Sa Sa", page_icon="🩺", layout="wide")
+st.set_page_config(page_title="NameCare - Dashboard", page_icon="🩺", layout="wide")
 
 # ---- SESSION STATE ----
 if 'patient' not in st.session_state:
@@ -125,8 +142,8 @@ model.eval()
 mimic_df = pd.DataFrame(mimic3sample.samples)
 
 # ---- SIDE BAR ----
-st.sidebar.title('🩺 Prova Prova Sa Sa')
-st.sidebar.caption("Entra?")
+st.sidebar.title('🩺 NameCare')
+# st.sidebar.caption("TEXT")
 st.sidebar.divider()
 
 fake = Faker()
@@ -168,7 +185,7 @@ visit = st.sidebar.selectbox(label='Select __visit__ n°: ', options=mimic_df_pa
 
 mimic_df_patient_visit = mimic_df_patient[mimic_df_patient['visit_id'] == visit] # select all the rows with the selected visit
 task = st.sidebar.selectbox(label='Select __task__: ', options=['medications', 'diagnosis'])
-algorithm = st.sidebar.selectbox(label='Select __interpretability algorithm__: ', options=['IG', 'GNNExplainer'])
+algorithm = st.sidebar.selectbox(label='Select __Explainer algorithm__: ', options=['IG', 'GNNExplainer'])
 
 # ---- MAIN PAGE ----
 # st.header('🩺 E che munnezz!')
@@ -222,3 +239,143 @@ with r1:
 
     explain_dataset = SampleEHRDataset(list(explain_sample.values()), code_vocs="ATC")
     explainability(model, explain_dataset, selected_idx[0], algorithm, task)
+
+####################### Scouter AI Component ##################################
+st.header('👨‍⚕️ Doctor Explainer AI')
+message = f"**TEXT**"
+st.caption(message)
+
+api_key = st.text_input("You need to enter the Open AI API Key:", placeholder="sk-...", type="password")
+os.environ['OPENAI_API_KEY'] = api_key
+
+if not(api_key):
+    st.stop()
+
+col1, col2 = st.columns([1.2, 2], gap="large")
+
+with col1:
+    with open("streamlit_results/medical_scenario.txt", "r") as f:
+        medical_scenario = f.read()
+    st.caption(medical_scenario)
+
+with col2:
+    with st.status("Recruiting doctor...", expanded=False) as status:
+        # st.write("Searching for doctor...")
+        # st.write("Found a doctor.")
+        # st.write("Doctor recruited...")
+
+        with open("streamlit_results/prompt_recruiter_doctors.txt", "r") as f:
+            prompt_recruiter_doctors = f.read()
+
+        client = OpenAIWrapper(api_key=os.environ['OPENAI_API_KEY'])
+        response = client.create(messages=[{"role": "user", "content": prompt_recruiter_doctors}], 
+                                temperature=0.3, 
+                                seed=42, 
+                                model="gpt-3.5-turbo")
+
+        text = client.extract_text_or_completion_object(response)
+        json_data = json.loads(text[0])
+        with open("streamlit_results/recruited_doctors.json", "w") as f:
+            json.dump(json_data, f, indent=4)
+
+        for i, doctor in enumerate(json_data['doctors']):
+            role = f"""{i+1} - {doctor['role'].replace(" ", "_")}"""
+            st.write(role)
+
+        status.update(label="Doctor recruited!", state="complete", expanded=True)
+
+    st.button('Rerun')
+
+    st.subheader("Analysis Proposition")
+
+    with st.spinner("Doctors are thinking..."):
+        with open("streamlit_results/prompt_internist_doctor.txt", "r") as f:
+            prompt_internist_doctor = f.read()
+
+        # OpenAI endpoint
+        doctor = OpenAIWrapper(api_key=os.environ['OPENAI_API_KEY'])
+
+        prompt_reunion = f"""###Instructions###\n"""
+        prompt_reunion += f"""Based on YOUR analysis and the team's suggestions regarding the medication recommendation during the patient's visit: \n"""
+        prompt_reunion += f"""- Discuss with your medical colleagues in the team, highlighting important aspects related to the patient's condition in relation to the administration of the medication and which have an impact on your decision of whether it is justifiable or unjustifiable.\n"""
+        prompt_reunion += f"""- Elaborate on your initial opinion in the light of the discussions and opinions of the other doctors, giving more emphasis to the aspects you consider appropriate. \n\n"""
+
+        prompt_reunion += f"""###Analysis###\n"""
+        prompt_reunion += f"""Analysis Propositions: \n"""
+        for i in range(len(json_data['doctors'])):
+            with st.chat_message(name="user", avatar="https://generated-images.perchance.org/image/777b73a7a72204c5417c33c77100317b96792fbfa4a55e7112a88053ba272cd9.jpeg"):
+                analysis = """"""
+                analysis += f"""**Doctor**: {json_data['doctors'][i]['role'].replace(" ", "_")}\n\n"""
+                response = doctor.create(messages=[
+                                                    {"role": "system", 
+                                                        "content": json_data['doctors'][i]['description']},
+                                                    {"role": "user", 
+                                                        "content": prompt_internist_doctor}
+                                                    ], 
+                                            temperature=0.5, 
+                                            model="gpt-3.5-turbo") 
+                analysis += "**Analysis**: " + doctor.extract_text_or_completion_object(response)[0]
+                st.markdown(analysis)
+                prompt_reunion += f"""{analysis}"""
+                prompt_reunion += f"\n--------------------------------------------------\n\n"
+
+        prompt_reunion += f"""###Desired Behavior###\n"""
+        prompt_reunion +=f"""You MUST summarise your opinion on the recommendation in a text of 25-WORDS, which helps the INTERNIST DOCTOR to make a final decision."""
+
+st.header('💬 Collaborative Discussion')
+
+with st.spinner("Doctors are discussing..."):
+    config_list = [
+        {
+            "model": "gpt-3.5-turbo",
+            "api_key": os.environ['OPENAI_API_KEY']
+        }
+    ]
+
+    llm_config={
+        "timeout": 500,
+        "seed": 42,
+        "config_list": config_list,
+        "temperature": 0.5
+    }
+
+    doc = []
+
+    for i in range(len(json_data['doctors'])):
+        doc.append(AssistantAgent(
+            name=json_data['doctors'][i]['role'].replace(" ", "_"), # Nome del dottore esperto
+            llm_config=llm_config,
+            system_message="You are the " + json_data['doctors'][i]['role'].replace(" ", "_") + "."
+        ))
+
+    internist_sys_message = f"""You are the INTERNIST DOCTOR who deals with the overall assessment of the patient and his pathology, integrating the different therapies, so that you can manage his health in a comprehensive manner. \n"""
+    internist_sys_message += f"""DIRECTIVE: ONLY AFTER the doctors have provided the most relevant aspects on the recommendation of the medication to be administered to the patient, you MUST explain your opinion on the recommendation based on the opinions of the doctors and your own medical knowledge, taking into account the potential benefits or risks. \n"""
+    internist_sys_message += f"""EXPLAIN your considerations and ONLY THEN reply with the FINAL DECISION: JUSTIFIABLE/NON JUSTIFIABLE to close the conversation."""
+
+    doc.append(TrackableUserProxyAgent(
+        name="internist_doctor", # Recruiter che passa il Report della visita del paziente
+        human_input_mode="NEVER",
+        max_consecutive_auto_reply=1,
+        is_termination_msg=lambda x: x.get("content", "").rstrip().endswith(("TERMINATE")),
+        code_execution_config=False,
+        llm_config=llm_config,
+        system_message=internist_sys_message
+    ))
+
+    groupchat = autogen.GroupChat(agents=doc, 
+                                messages=[], 
+                                max_round=(len(doc)+1), 
+                                speaker_selection_method="round_robin")
+
+    manager = autogen.GroupChatManager(groupchat=groupchat, 
+                                    llm_config=llm_config, 
+                                    max_consecutive_auto_reply=1)
+
+    doc[-1].initiate_chat(
+        manager,
+        message=prompt_reunion,
+    )
+
+    with st.chat_message(name="user", avatar="https://generated-images.perchance.org/image/777b73a7a72204c5417c33c77100317b96792fbfa4a55e7112a88053ba272cd9.jpeg"):
+        internist = list(manager.chat_messages.values())
+        st.write(f"**{internist[0][6]['name']}**: {internist[0][6]['content']}")
