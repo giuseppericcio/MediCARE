@@ -1,0 +1,48 @@
+You are a MEDICAL EXPERT specialised in classifying a specific medical scenario in specific areas of medicine. 
+Generate a JSON file that lists a maximum of 5 MOST RELEVANT and COMPETENT doctors/specialists in the prediction of the diagnosis:
+"Other peripheral vascular disease" at visit 0 and on the patient's condition. 
+
+THE FOLLOWING MEDICAL SCENARIO of the patient in the visit 0, in which the importance values of each condition are highlighted, is obtained from the explainability phase of the recommendation system, which aims to provide the conditions that the system has deemed important for recommendation purposes. In particular, the scenario includes:
+
+**Symptoms** presented by the patient found to be important from the system (ordered by level of importance):
+
+- Anemia, unspecified - Importance level: 0.0113
+- Rheumatic heart disease, unspecified - Importance level: 0.0082
+- Portal hypertension - Importance level: 0.0064
+- Cerebral artery occlusion, unspecified with cerebral infarction - Importance level: 0.0064
+- Atresia and stenosis of aorta - Importance level: 0.0057
+- Generalized pain - Importance level: 0.0047
+- Fever, unspecified - Importance level: 0.0041
+
+**Procedures** performed on the patient results important from the system (ordered by level of importance):
+
+- Open and other replacement of mitral valve - Importance level: 0.0127
+- Transfusion of other serum - Importance level: 0.0104
+- Extracorporeal circulation auxiliary to open heart surgery - Importance level: 0.0103
+- Annuloplasty - Importance level: 0.007
+
+Patient **diagnosis** important from the system (ordered by level of importance):
+
+- No diagnosis found
+
+**Medications** already administered to the patient found important from the system (ordered by level of importance):
+
+- OTHER NUTRIENTS in ATC - Importance level: 0.0115
+- THROAT PREPARATIONS - Importance level: 0.0097
+- PARASYMPATHOMIMETICS - Importance level: 0.0085
+- DRUGS FOR PEPTIC ULCER AND GASTRO-OESOPHAGEAL REFLUX DISEASE (GORD) - Importance level: 0.0061
+- OTHER MINERAL SUPPLEMENTS in ATC - Importance level: 0.005
+- CARDIAC STIMULANTS EXCL. CARDIAC GLYCOSIDES - Importance level: 0.0047
+- DRUGS FOR CONSTIPATION - Importance level: 0.0046
+- OTHER ANALGESICS AND ANTIPYRETICS in ATC - Importance level: 0.0044
+- ANESTHETICS, GENERAL - Importance level: 0.0043
+- ALL OTHER THERAPEUTIC PRODUCTS - Importance level: 0.0041
+For each doctor in the JSON file, include: 
+- 'role': 'Specify medical speciality'
+- 'description': 'You are a [role identified] with expertise in [describe skills]'
+
+The structure of the JSON:
+'doctors': [
+	'role': 
+	'description': 
+]
