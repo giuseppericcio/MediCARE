@@ -8,4 +8,4 @@ output/
 static-kg/
 lib/
 explainability_results/
-streamlit_results/
+streamlit_results/*
