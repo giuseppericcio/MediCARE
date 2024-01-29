@@ -25,9 +25,15 @@ PATH_DIAG = "model/diagnosis_prediction/best.ckpt"
 # shutil.rmtree(".cache/", ignore_errors=True)
 
 class TrackableUserProxyAgent(UserProxyAgent):
+    t = 0
     def _process_received_message(self, message, sender, silent):
-        with st.chat_message(sender.name, avatar="https://generated-images.perchance.org/image/777b73a7a72204c5417c33c77100317b96792fbfa4a55e7112a88053ba272cd9.jpeg"):
+        global t  # Declare t as a global variable
+        with st.chat_message(sender.name, avatar="streamlit_images/{}.png".format(self.t)):
             st.write(f"**{message['name']}**: {message['content']}")
+            self.t += 1
+            if self.t == 4:
+                self.t = 0
+        st.divider()
         return super()._process_received_message(message, sender, silent)
 
 @st.cache_resource(hash_funcs={torch.nn.parameter.Parameter: lambda _: None})
@@ -207,7 +213,6 @@ hide_streamlit_style = """
                 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 
-
 # ---- SESSION STATE ----
 if 'patient' not in st.session_state:
     st.session_state.patient = None
@@ -370,7 +375,7 @@ with l1:
                             col_history = [[idx, icd9.lookup(idx)] for idx in (mimic_df_patient_visit_filtered[column].explode()).explode() if idx]
                         elif task == "diagnosis":
                             col_history = [[idx+'0', icd9.lookup(idx+'0')] if idx.startswith('E') else [idx, icd9.lookup(idx)] for idx in mimic_df_patient_visit_filtered[column].explode() if idx]
-                            st.dataframe(col_history, hide_index=True, column_config={"0": "ICD9", "1": "Description"})
+                        st.dataframe(col_history, hide_index=True, column_config={"0": "ICD9", "1": "Description"})
                     elif column == "symptoms":
                         col_history = [[idx, icd9.lookup(idx)] for idx in (mimic_df_patient_visit_filtered[column].explode()).explode() if idx]
                         st.dataframe(col_history, hide_index=True, column_config={"0": "ICD9", "1": "Description"})
@@ -450,7 +455,7 @@ with r1:
     selected_idx = [item[0] for item in list_output if item[1] == selected_label]
 
     st.caption("Legend of the graph:")
-    col1, col2, col3, col4, col5, col6, col7, col8, col9, col10, col11, col12 = st.columns([0.1, 0.3, 0.1, 0.3, 0.1, 0.3, 0.1, 0.3, 0.1, 0.3, 0.1, 0.3])
+    col1, col2, col3, col4, col5, col6, col7, col8 = st.columns([0.1, 0.3, 0.1, 0.3, 0.1, 0.3, 0.1, 0.3])
 
     with col1:
         st.markdown(
@@ -467,11 +472,7 @@ with r1:
             """,
             unsafe_allow_html=True,
         )
-    
-    with col2:
-        st.caption("Patient")
 
-    with col3:
         st.markdown(
             """
             <style>
@@ -480,17 +481,21 @@ with r1:
                 height: 20px;
                 background: #fa8072;
                 border-radius: 3px;
+                margin-top: 20px;
+
             }
             </style>
             <div id="square2"></div>
             """,
             unsafe_allow_html=True,
         )
+    
+    with col2:
+        st.caption("Patient")
 
-    with col4:
         st.caption("Visit")
 
-    with col5:
+    with col3:
         st.markdown(
             """
             <style>
@@ -505,11 +510,6 @@ with r1:
             """,
             unsafe_allow_html=True,
         )
-
-    with col6:
-        st.caption("Diagnosis")
-
-    with col7:
         st.markdown(
             """
             <style>
@@ -518,6 +518,7 @@ with r1:
                 height: 20px;
                 background: #da70d6;
                 border-radius: 3px;
+                margin-top: 20px;
             }
             </style>
             <div id="square4"></div>
@@ -525,10 +526,13 @@ with r1:
             unsafe_allow_html=True,
         )
 
-    with col8:
-        st.caption("Procedures")
+    with col4:
+        st.caption("Diagnosis")
 
-    with col9:
+        st.caption("Procedures")
+        
+
+    with col5:
         st.markdown(
             """
             <style>
@@ -543,11 +547,12 @@ with r1:
             """,
             unsafe_allow_html=True,
         )
-
-    with col10:
+        
+    with col6:
         st.caption("Symptoms")
+        
 
-    with col11:
+    with col7:
         st.markdown(
             """
             <style>
@@ -556,16 +561,17 @@ with r1:
                 height: 20px;
                 background: #87ceeb;
                 border-radius: 3px;
+            
             }
             </style>
             <div id="square6"></div>
             """,
             unsafe_allow_html=True,
         )
-
-    with col12:
+    
+    with col8:
         st.caption("Medications")
-
+    
     explain_sample = {}
     for visit_sample in mimic3sample.samples:
         if visit_sample['patient_id'] == patient and visit_sample['visit_id'] == last_visit['visit_id'].item():
@@ -575,6 +581,7 @@ with r1:
 
     explain_dataset = SampleEHRDataset(list(explain_sample.values()), code_vocs="ATC")
     explainability(model, explain_dataset, selected_idx[0], visualization, algorithm, task, threshold)
+
 
 ####################### CORE AI Component ##################################
 st.header('🩺🧠 CORE AI Component')
@@ -643,7 +650,7 @@ with col2:
 
         for i in range(len(json_data['doctors'])):
             with st.status(f"The 👨‍⚕️ {json_data['doctors'][i]['role'].replace('_', ' ')} is analysing ...", expanded=False) as status_doc:
-                with st.chat_message(name="user", avatar="https://generated-images.perchance.org/image/777b73a7a72204c5417c33c77100317b96792fbfa4a55e7112a88053ba272cd9.jpeg"):
+                with st.chat_message(name="user", avatar="streamlit_images/{}.png".format(i)):
                     analysis = """"""
                     analysis += f"""**Doctor**: {json_data['doctors'][i]['role'].replace(" ", "_")}\n\n"""
                     response = doctor.create(messages=[
@@ -660,7 +667,13 @@ with col2:
                     prompt_reunion += f"""{analysis}"""
                     prompt_reunion += f"\n--------------------------------------------------\n\n"
 
-st.header('💬 Collaborative Discussion')
+image, text = st.columns([0.5, 2])
+
+with image: 
+    st.image("streamlit_images/collaborative.png")
+
+with text:
+    st.subheader('Collaborative Reasoning Engine Discussion')
 
 with st.spinner("Doctors are discussing..."):
     config_list = [
@@ -714,6 +727,6 @@ with st.spinner("Doctors are discussing..."):
         message=prompt_reunion,
     )
 
-    with st.chat_message(name="user", avatar="https://generated-images.perchance.org/image/777b73a7a72204c5417c33c77100317b96792fbfa4a55e7112a88053ba272cd9.jpeg"):
+    with st.chat_message(name="user", avatar="streamlit_images/internist.png"):
         internist = list(manager.chat_messages.values())
         st.write(f"**{internist[0][6]['name']}**: {internist[0][6]['content']}")
