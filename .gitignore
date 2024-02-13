@@ -3,9 +3,11 @@ proj_venv/
 data/
 data_medmentions/
 data_umls/
+drkg/
 spacy_model/
 output/
 static-kg/
+sympgan/
 lib/
 explainability_results/
 streamlit_results/*.png
