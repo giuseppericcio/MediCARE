@@ -22,7 +22,7 @@ from pyhealth.explainer import HeteroGraphExplainer
 
 PATH_MED = "model/medication_recommendation/best.ckpt"
 PATH_DIAG = "model/diagnosis_prediction/best.ckpt"
-# shutil.rmtree(".cache/", ignore_errors=True)
+shutil.rmtree(".cache/", ignore_errors=True)
 
 class TrackableUserProxyAgent(UserProxyAgent):
     t = 0
@@ -182,7 +182,7 @@ def explainability(model: GNN, explain_dataset: SampleEHRDataset, selected_idx: 
 
 
 # ---- SETTINGS PAGE ----
-st.set_page_config(page_title="MHGCORECare - Dashboard", page_icon="🩺", layout="wide")
+st.set_page_config(page_title="GREATCARE - Dashboard", page_icon="🩺", layout="wide")
 
 hide_streamlit_style = """
                 <style>
@@ -502,7 +502,7 @@ with r1:
             """,
             unsafe_allow_html=True,
         )
-    
+
     with col2:
         st.caption("Patient")
 
@@ -543,7 +543,6 @@ with r1:
         st.caption("Diagnosis")
 
         st.caption("Procedures")
-        
 
     with col5:
         st.markdown(
@@ -560,10 +559,9 @@ with r1:
             """,
             unsafe_allow_html=True,
         )
-        
+
     with col6:
         st.caption("Symptoms")
-        
 
     with col7:
         st.markdown(
@@ -581,10 +579,10 @@ with r1:
             """,
             unsafe_allow_html=True,
         )
-    
+
     with col8:
         st.caption("Medications")
-    
+
     explain_sample = {}
     for visit_sample in mimic3sample.samples:
         if visit_sample['patient_id'] == patient and visit_sample['visit_id'] == last_visit['visit_id'].item():
