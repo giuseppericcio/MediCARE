@@ -50,6 +50,7 @@ def load_gnn() -> Tuple[torch.nn.Module, torch.nn.Module, torch.nn.Module, torch
 
     model_med_ig = GNN(
         dataset=mimic3sample_med,
+        convlayer="GraphConv",
         feature_keys=["procedures", "symptoms", "diagnosis"],
         label_key="medications",
         k=0,
@@ -59,6 +60,7 @@ def load_gnn() -> Tuple[torch.nn.Module, torch.nn.Module, torch.nn.Module, torch
 
     model_med_gnn = GNN(
         dataset=mimic3sample_med,
+        convlayer="GraphConv",
         feature_keys=["procedures", "symptoms", "diagnosis"],
         label_key="medications",
         k=0,
@@ -68,6 +70,7 @@ def load_gnn() -> Tuple[torch.nn.Module, torch.nn.Module, torch.nn.Module, torch
 
     model_diag_ig = GNN(
         dataset=mimic3sample_diag,
+        convlayer="GraphConv",
         feature_keys=["procedures", "symptoms", "medications"],
         label_key="diagnosis",
         k=0,
@@ -77,6 +80,7 @@ def load_gnn() -> Tuple[torch.nn.Module, torch.nn.Module, torch.nn.Module, torch
 
     model_diag_gnn = GNN(
         dataset=mimic3sample_diag,
+        convlayer="GraphConv",
         feature_keys=["procedures", "symptoms", "medications"],
         label_key="diagnosis",
         k=0,
@@ -232,12 +236,12 @@ st.sidebar.image(".\streamlit_images\logo_icon.png")
 st.sidebar.divider()
 
 # ---- MAIN PAGE ----
-st.title(":blue[MHGCORE]Care (Alpha-Test)")
-st.markdown("Welcome to the dashboard of the **M**edical **H**eterogeneous **G**raph **CO**llaborative **R**easoning **E**ngine **C**are project!")
+st.title(":rainbow[GREATCARE] :grey[(Alpha-Test)]")
+st.markdown("Welcome to the dashboard of the GREATCARE project!")
 
 desc = st.empty()
 desc1 = st.empty()
-desc.caption("The dashboard is divided into two main sections: the **Medical Heterogenous Graph (MHG) module** and the **COllaborative Reasoning Engine (CORE) module**. The **MHG module** is responsible for processing the patient's medical history and generating recommendations for the doctor. The **CORE module** is responsible for generating the analysis of the doctors' proposals and the collaborative discussion between the medical team members for the final decision on the patient's treatment.")
+desc.caption("The dashboard is divided into two main sections: the **Graphs Enriched with External Knowledge and Clinical Text for Personalised Predictive Healthcare (GREAT) module** and the **COllaborative Reasoning Engine (CORE) module**. The **GREAT module** is responsible for processing the patient's medical history and generating recommendations for the doctor. The **Medical Collaborative Agents REasoning over Interpretable Heterogeneous Graphs module (CARE)** is responsible for generating the analysis of the doctors' proposals and the collaborative discussion between the medical team members for the final decision on the patient's treatment.")
 desc1.caption("**⏳ WAIT MINUTES FOR THE LOADING OF THE MODELS AND THE DATASET**")
 
 model_med_ig, model_med_gnn, model_diag_ig, model_diag_gnn, \
@@ -252,9 +256,7 @@ fake = Faker()
 
 selected_patient = None
 if selected_patient is None:
-    # st.title(":blue[MHGCORE]Care (Alpha-Test)")
-    # st.markdown("Welcome to the dashboard of the **M**edical **H**eterogeneous **G**raph **CO**llaborative **R**easoning **E**ngine **C**are project!")
-
+    
     placeholder2 = st.empty()
     with placeholder2.expander("⚠️ **Before using the framework, read the disclaimer for the use of Framework**"):
         disclaimer = f"""
@@ -428,7 +430,7 @@ with l1:
         st.dataframe(list_output, column_config={"0": "ID", "1": "Predicted Diagnosis"}, height=None, width=None)
 
 with r1:
-    st.subheader(f"""🗣 *why* the model recommends these {task}?""")
+    st.subheader(f"""🗣 *Why* the model recommends these {task}?""")
 
     r1l1, r1c1, r1r1 = st.columns(3)
     with r1l1:
@@ -594,9 +596,9 @@ with r1:
     explainability(model, explain_dataset, selected_idx[0], visualization, algorithm, task, threshold)
 
 
-####################### CORE AI module ##################################
-st.header('🩺🧠 *CO*llaborative *R*easoning *E*ngine')
-st.caption("The following section is dedicated to the CORE module, which is responsible for generating the analysis of the doctors' proposals and the collaborative discussion between the medical team members for the final decision on the patient's treatment.")
+####################### CARE AI module ##################################
+st.header('🩺🧠 *C*ollaborative *A*gents *RE*asoning')
+st.caption("The following section is dedicated to the CARE module, which is responsible for generating the analysis of the doctors' proposals and the collaborative discussion between the medical team members for the final decision on the patient's treatment.")
 
 api_key = st.text_input("You need to enter the Open AI API Key:", placeholder="sk-...", type="password")
 os.environ['OPENAI_API_KEY'] = api_key
@@ -690,7 +692,7 @@ with image:
     st.image("streamlit_images/collaborative.png")
 
 with text:
-    st.subheader('*CORE* Discussion')
+    st.subheader('*CARE* Discussion')
 
 st.caption("The following discussion is based on the **Large Language Model** (LLM) **GPT-3.5-turbo**. The LLM is responsible for generating the discussion between the medical team members for the final decision on the patient's treatment.")
 
@@ -719,9 +721,13 @@ with st.spinner("Doctors are discussing..."):
             
 
     if task == "medications":
+        # internist_sys_message = f"""As an INTERNIST DOCTOR, you have the task of globally evaluating and managing the patient's health and pathology.\n"""
+        # internist_sys_message += f"""ONLY AFTER listening to medical specialists' opinions on medication recommendations, provide your assessment based on your medical expertise. Explore the possible benefits and risks of the decision.\n"""
+        # internist_sys_message += f"""EXPLAIN your considerations and, SUBSEQUENTLY, determine a FINAL DECISION taking into account the majority of opinions: conclude the discussion with "JUSTIFIABLE" or "UNJUSTIFIABLE"."""
+    
         internist_sys_message = f"""As an INTERNIST DOCTOR, you have the task of globally evaluating and managing the patient's health and pathology.\n"""
-        internist_sys_message += f"""ONLY AFTER listening to medical specialists' opinions on medication recommendations, provide your assessment based on your medical expertise. Explore the possible benefits and risks of the decision.\n"""
-        internist_sys_message += f"""EXPLAIN your considerations and, SUBSEQUENTLY, determine a FINAL DECISION taking into account the majority of opinions: conclude the discussion with "JUSTIFIABLE" or "UNJUSTIFIABLE"."""
+        internist_sys_message += f"""In the light of the entire discussion, you must provide a final schematic report to the doctor based on the recommendation and the doctors' opinions."""
+
     elif task == "diagnosis":
         internist_sys_message = f"""As an INTERNIST DOCTOR, you have the task of globally evaluating and managing the patient's health and pathology.\n"""
         internist_sys_message += f"""ONLY AFTER listening to medical specialists' opinions on diagnosis predictions, provide your assessment based on your medical expertise. Explore the possible benefits and risks of the decision.\n"""
