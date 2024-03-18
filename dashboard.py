@@ -51,7 +51,7 @@ def load_gnn() -> Tuple[torch.nn.Module, torch.nn.Module, torch.nn.Module, torch
     model_med_ig = GNN(
         dataset=mimic3sample_med,
         convlayer="GraphConv",
-        feature_keys=["procedures", "symptoms", "diagnosis"],
+        feature_keys=["procedures", "diagnosis", "symptoms"],
         label_key="medications",
         k=0,
         embedding_dim=128,
@@ -61,7 +61,7 @@ def load_gnn() -> Tuple[torch.nn.Module, torch.nn.Module, torch.nn.Module, torch
     model_med_gnn = GNN(
         dataset=mimic3sample_med,
         convlayer="GraphConv",
-        feature_keys=["procedures", "symptoms", "diagnosis"],
+        feature_keys=["procedures", "diagnosis", "symptoms"],
         label_key="medications",
         k=0,
         embedding_dim=128,
@@ -71,7 +71,7 @@ def load_gnn() -> Tuple[torch.nn.Module, torch.nn.Module, torch.nn.Module, torch
     model_diag_ig = GNN(
         dataset=mimic3sample_diag,
         convlayer="GraphConv",
-        feature_keys=["procedures", "symptoms", "medications"],
+        feature_keys=["procedures", "medications", "symptoms"],
         label_key="diagnosis",
         k=0,
         embedding_dim=128,
@@ -81,7 +81,7 @@ def load_gnn() -> Tuple[torch.nn.Module, torch.nn.Module, torch.nn.Module, torch
     model_diag_gnn = GNN(
         dataset=mimic3sample_diag,
         convlayer="GraphConv",
-        feature_keys=["procedures", "symptoms", "medications"],
+        feature_keys=["procedures", "medications", "symptoms"],
         label_key="diagnosis",
         k=0,
         embedding_dim=128,
@@ -236,7 +236,7 @@ st.sidebar.image(".\streamlit_images\logo_icon.png")
 st.sidebar.divider()
 
 # ---- MAIN PAGE ----
-st.title(":rainbow[GREATCARE] :grey[(Alpha-Test)]")
+st.title(":rainbow[GREATCARE]")
 st.markdown("Welcome to the dashboard of the GREATCARE project!")
 
 desc = st.empty()
