@@ -1,6 +1,6 @@
-# MHGCORECare (Alpha-Test) Dashboard
+# GREAT-CARE (Alpha-Test) Dashboard
 
-Welcome to MHGCORECare (Alpha-Test) Dashboard! This dashboard is designed to predict and recommend diagnosis and medication for patients during a visit based on their medical conditions such as symptoms, diagnosis, procedures, and medications. The predictions are generated using a Graph Neural Network (GNN) model. Additionally, the dashboard integrates the CORE AI component (LLM), which analyzes doctors' proposals and facilitates collaborative discussions among medical team members for the final decision on the patient's treatment.
+Welcome to GREAT-CARE (Alpha-Test) Dashboard! This dashboard is designed to predict and recommend diagnosis and medication for patients during a visit based on their medical conditions such as symptoms, diagnosis, procedures, and medications. The predictions are generated using a Graph Neural Network (GNN) model. Additionally, the dashboard integrates the CORE AI component (LLM), which analyzes doctors' proposals and facilitates collaborative discussions among medical team members for the final decision on the patient's treatment.
 
 ## Prerequisites
 
@@ -31,7 +31,7 @@ Make sure you have the following installed on your machine:
 
 ## Running the Dashboard
 
-To run the MHGCORECare (Alpha-Test) Streamlit dashboard, use the following command:
+To run the GREAT-CARE (Alpha-Test) Streamlit dashboard, use the following command:
 
 ```bash
 streamlit run dashboard.py
