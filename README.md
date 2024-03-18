@@ -19,6 +19,7 @@
     <img src="https://github.com/CogStack/MedCAT/blob/master/media/cat-logo.png?raw=true" alt="MedCat" height="45">
     <img src="https://th.bing.com/th/id/R.7494e83354e2662240d06630cc31f08d?rik=9tIRLZpYS9oTfQ&pid=ImgRaw&r=0" alt="Python" height="45">
     <img src="https://th.bing.com/th/id/OIP.8CuA1RVvzjfpIVXMWW_TFQHaBj?pid=ImgDet&rs=1" alt="OpenAI" height="45">
+    <img src="https://microsoft.github.io/autogen/img/ag.svg" alt="AutoGen" height="45">    
     <img src="https://streamlit.io/images/brand/streamlit-logo-primary-colormark-darktext.svg" alt="Streamlit" height="45">
 </div>
 
