@@ -1,11 +1,12 @@
-# 💊 GREAT-CARE Framework
-**GREAT-CARE** is an advanced open-source framework designed to revolutionize personalized medical recommendations through the integration of Machine Learning techniques and Graph Neural Networks (GNNs). Developed during MSc Thesis Internship at University of Naples "Federico II" in collaboration with _PicusLab_, this framework aims to optimize clinical decision-making by leveraging Electronic Health Records (EHRs) data, within the [MIMIC-III](https://physionet.org/content/mimiciii/1.4/) database (noteevents). The overall framework has been integrated within the open-source _PyHealth_ library (check the fork repo [here](https://github.com/LaErre9/PyHealth)).
+# 💊 MediCARE Framework
+**MediCARE** is an advanced framework designed to revolutionize personalized medical recommendations through the integration of Machine Learning techniques and Graph Neural Networks (GNNs). Developed during MSc Thesis Internship at University of Naples "Federico II" in collaboration with _PicusLab_, this framework aims to optimize clinical decision-making by leveraging Electronic Health Records (EHRs) data, within the [MIMIC-III](https://physionet.org/content/mimiciii/1.4/) database (noteevents). The overall framework has been integrated within the open-source _PyHealth_ library (check the fork repo [here](https://github.com/LaErre9/PyHealth)).
 
 ## ✨ Features
-- **Personalized Recommendations:** GREAT-CARE utilizes state-of-the-art machine learning algorithms to generate personalized medical recommendations tailored to individual patient profiles.
-- **Graph Representation:** The framework employs Heterogeneous Graph representations to capture complex relationships between medical concepts extracted from EHR data through _Named Entity Recognition_ and _Entity Linking_ (NER+EL), ensuring a comprehensive understanding of patient health.
-- **Integration of External Knowledge:** GREAT-CARE enriches patient graphs with static Medical Knowledge Graphs, such as [DRKG](https://github.com/gnn4dr/DRKG) and [SympGAN](http://www.sympgan.org/), enhancing the accuracy and depth of medical recommendations by introducing additional medical concepts and relationships.
-- **Explainable AI (XAI):** The framework incorporates eXplainable Artificial Intelligence (XAI) methods such as _GNNExplainer_ and _Integrated Gradients_ to interpret and explain the recommendations, enhancing transparency and trust in the decision-making process.
+- **Personalized Recommendations:** MediCARE utilizes state-of-the-art machine learning algorithms to generate personalized medical recommendations tailored to individual patient profiles;
+- **Graph Representation:** The framework employs Heterogeneous Graph representations to capture complex relationships between medical concepts extracted from EHR data through _Named Entity Recognition_ and _Entity Linking_ (NER+EL), ensuring a comprehensive understanding of patient health;
+- **Integration of External Knowledge:** MediCARE enriches patient graphs with static Medical Knowledge Graphs, such as [DRKG](https://github.com/gnn4dr/DRKG) and [SympGAN](http://www.sympgan.org/), enhancing the accuracy and depth of medical recommendations by introducing additional medical concepts and relationships;
+- **Explainable AI (XAI):** The framework incorporates eXplainable Artificial Intelligence (XAI) methods such as _GNNExplainer_ and _Integrated Gradients_ to interpret the recommendations and internal mechanims of the GNN models;
+- **Multi Agent Collaboration LLMs:** MediCARE with this solution generate, discuss, and revise comprehensive assessments to explain the predictions of the model.
 
 ## ⚙️ Project Workflow
 <div align="center">
@@ -27,6 +28,6 @@
 **It is essential to note that MIMIC-III** **contains sensitive patient data** and, therefore, must be handled with the utmost care and in compliance with privacy regulations and institutional policies. Before using the dataset, carefully review and adhere to the guidelines provided by the MIMIC team and consult your local ethics committee.
 
 ## ✅ Project realised for demonstration and educational purposes only
-**Copyright © 2024** - GREAT-CARE Framework project carried out for the MSc Internship held at the University of Naples "Federico II". Realised for demonstration and teaching purposes only.
+**Copyright © 2024** - MediCARE Framework project carried out for the MSc Internship held at the University of Naples "Federico II". Realised for demonstration and teaching purposes only.
 <br>
 **Antonio Romano, Giuseppe Riccio**
