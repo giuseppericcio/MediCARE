@@ -9,9 +9,7 @@
 - **Multi Agent Collaboration LLMs:** MediCARE with this solution generate, discuss, and revise comprehensive assessments to explain the predictions of the model.
 
 ## ⚙️ Project Workflow
-<div align="center">
-    <img src="https://github.com/giuseppericcio/MSc-Thesis-Project/assets/64225083/404da9cc-b73d-40d1-b370-acb28be82175" alt="Framework" height="800">
-</div>
+![MediCARE](https://github.com/giuseppericcio/MSc-Thesis-Project/assets/7995055/52ba9438-e5f4-4b81-8c1a-36ee66612c77)
 
 ## 🛠️ Tools used
 <div align="center">
